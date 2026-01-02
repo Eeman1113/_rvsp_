@@ -3,7 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>_rvsp_</title>
+    
+    <!-- SEO: Title & Meta Tags -->
+    <title>_rvsp_ - The better way to read</title>
+    <meta name="description" content="Experience _rvsp_, the ultimate RSVP (Rapid Serial Visual Presentation) speed reading app. Read faster, improve focus, and process information efficiently without eye movement. The better way to read.">
+    <meta name="keywords" content="speed reading, RSVP reader, rapid serial visual presentation, read faster, _rvsp_, productivity tool, focus reading, dark mode reader, speed reader online, text to rsvp">
+    <meta name="author" content="_rvsp_">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="_rvsp_ - The better way to read">
+    <meta property="og:description" content="Read faster and focus better with _rvsp_, the minimal RSVP speed reading tool designed for modern readers.">
+    <meta property="og:site_name" content="_rvsp_">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="_rvsp_ - The better way to read">
+    <meta property="twitter:description" content="Read faster and focus better with _rvsp_, the minimal RSVP speed reading tool designed for modern readers.">
+
+    <!-- Structured Data (JSON-LD) for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "_rvsp_",
+      "alternateName": "RSVP Reader",
+      "headline": "The better way to read",
+      "description": "A high-performance Rapid Serial Visual Presentation (RSVP) application designed to help users read faster by displaying words one at a time at user-defined speeds.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": "Speed reading, RSVP technology, Dark mode interface, Library management, Bookmark support"
+    }
+    </script>
+
     <!-- Thunderbolt Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22white%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22/></svg>">
     
@@ -85,6 +124,8 @@
     <!-- Top Navigation -->
     <nav class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-4 md:px-6 bg-black z-50 shrink-0">
         <div class="flex items-center gap-2 cursor-pointer" onclick="toggleView('input')">
+            <!-- Hidden H1 for SEO, visible text matches design -->
+            <h1 class="sr-only">_rvsp_ - RSVP Speed Reader</h1>
             <span class="font-bold tracking-tight text-lg text-white">_rvsp_</span>
         </div>
         <div class="flex items-center gap-4">
@@ -101,7 +142,7 @@
         <div id="view-input" class="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6 bg-black z-10 transition-opacity duration-300 overflow-y-auto">
             <div class="w-full max-w-2xl flex flex-col gap-6 my-auto">
                 <div class="space-y-1">
-                    <h1 class="text-3xl font-light text-white">Add Content</h1>
+                    <h2 class="text-3xl font-light text-white">Add Content</h2>
                     <p class="text-[#666] text-sm">Paste your text below to begin rapid reading.</p>
                 </div>
                 
