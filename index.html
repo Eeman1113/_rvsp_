@@ -343,6 +343,10 @@
 
             library.unshift(newItem); // Add to top
             saveLibrary(library);
+            
+            // Set current session to this new ID so bookmarks work immediately
+            state.currentLibraryId = newItem.id;
+            
             renderLibraryList();
             
             // Visual Feedback
@@ -653,6 +657,7 @@
             els.textInput.value = '';
             els.titleInput.value = '';
             state.currentLibraryId = null;
+            state.currentIndex = 0;
             updateWordCount();
         }
 
