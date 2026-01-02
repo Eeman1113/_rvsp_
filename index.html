@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>_rvsp_</title>
+    <!-- Thunderbolt Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22white%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22/></svg>">
+    
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         :root {
             --bg-color: #000000;
@@ -21,7 +26,7 @@
             background-color: var(--bg-color);
             color: white;
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scroll, handle internally */
         }
 
         /* Custom Scrollbar */
@@ -30,6 +35,7 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
+        /* RSVP Container Logic */
         .orp-container {
             display: flex;
             align-items: baseline;
@@ -38,12 +44,14 @@
             font-weight: 600;
             user-select: none;
             position: relative;
+            white-space: nowrap; /* Prevent wrapping */
         }
 
         .orp-left { text-align: right; width: 50%; padding-right: 2px; }
         .orp-pivot { color: var(--focus-point); width: auto; text-align: center; transform: scale(1.05); }
         .orp-right { text-align: left; width: 50%; padding-left: 2px; }
 
+        /* Focus Guides (Vertical Lines) */
         .guide-lines::before, .guide-lines::after {
             content: '';
             position: absolute;
@@ -57,6 +65,7 @@
         .guide-lines::before { top: -20px; }
         .guide-lines::after { bottom: -20px; }
 
+        /* Slider Styling */
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 12px; width: 12px;
@@ -74,7 +83,7 @@
 <body class="h-screen w-screen flex flex-col text-sm antialiased selection:bg-white selection:text-black">
 
     <!-- Top Navigation -->
-    <nav class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-black z-50">
+    <nav class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-4 md:px-6 bg-black z-50 shrink-0">
         <div class="flex items-center gap-2 cursor-pointer" onclick="toggleView('input')">
             <span class="font-bold tracking-tight text-lg text-white">_rvsp_</span>
         </div>
@@ -86,11 +95,11 @@
     </nav>
 
     <!-- Main Content Area -->
-    <main class="flex-1 relative flex flex-col">
+    <main class="flex-1 relative flex flex-col overflow-hidden">
 
         <!-- VIEW 1: Input / Dashboard -->
-        <div id="view-input" class="absolute inset-0 flex flex-col items-center justify-center p-6 bg-black z-10 transition-opacity duration-300">
-            <div class="w-full max-w-2xl flex flex-col gap-6">
+        <div id="view-input" class="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6 bg-black z-10 transition-opacity duration-300 overflow-y-auto">
+            <div class="w-full max-w-2xl flex flex-col gap-6 my-auto">
                 <div class="space-y-1">
                     <h1 class="text-3xl font-light text-white">Add Content</h1>
                     <p class="text-[#666] text-sm">Paste your text below to begin rapid reading.</p>
@@ -99,22 +108,22 @@
                 <div class="relative group">
                     <input id="title-input" class="w-full bg-transparent border-none text-white text-lg font-medium placeholder-[#444] focus:outline-none mb-2" placeholder="Untitled Story (Optional title)">
                     <textarea id="text-input" 
-                        class="w-full h-64 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 text-[#cccccc] placeholder-[#444] resize-none focus:outline-none focus:border-[#444] transition-colors font-mono text-sm leading-relaxed"
+                        class="w-full h-48 md:h-64 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 text-[#cccccc] placeholder-[#444] resize-none focus:outline-none focus:border-[#444] transition-colors font-mono text-sm leading-relaxed"
                         placeholder="Paste article, book chapter, or notes here..."></textarea>
                     <div class="absolute bottom-4 right-4 text-[#444] text-xs pointer-events-none" id="word-count">0 words</div>
                 </div>
 
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-4">
+                <div class="flex flex-col-reverse sm:flex-row justify-between items-center gap-4 sm:gap-0">
+                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
                         <button onclick="loadDemo()" class="text-xs text-[#666] hover:text-[#999] underline">Load Demo</button>
                         <button onclick="clearInput()" class="text-xs text-[#666] hover:text-red-400">Clear</button>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="saveToLibrary()" class="text-[#888888] hover:text-white border border-[#333] hover:border-white px-4 py-2.5 rounded-md font-medium text-sm transition-all">
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <button onclick="saveToLibrary()" class="flex-1 sm:flex-none justify-center text-[#888888] hover:text-white border border-[#333] hover:border-white px-4 py-2.5 rounded-md font-medium text-sm transition-all flex items-center">
                             Save to Library
                         </button>
                         <button onclick="startReader()" 
-                            class="bg-white text-black hover:bg-gray-200 px-6 py-2.5 rounded-md font-medium text-sm transition-all flex items-center gap-2 group">
+                            class="flex-1 sm:flex-none justify-center bg-white text-black hover:bg-gray-200 px-6 py-2.5 rounded-md font-medium text-sm transition-all flex items-center gap-2 group">
                             <span>Start Reading</span>
                             <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
                         </button>
@@ -127,11 +136,11 @@
         <div id="view-reader" class="absolute inset-0 bg-black z-0 opacity-0 pointer-events-none flex flex-col transition-opacity duration-300">
             
             <!-- Reader Header: Progress -->
-            <div class="h-16 flex items-center justify-between px-8 border-b border-[#111]">
+            <div class="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-[#111]">
                 <button onclick="exitReader()" class="text-[#666] hover:text-white transition-colors flex items-center gap-2 text-xs font-medium uppercase tracking-wide">
                     <i data-lucide="chevron-left" class="w-4 h-4"></i> Back
                 </button>
-                <div class="flex flex-col items-center gap-1 w-1/3">
+                <div class="flex flex-col items-center gap-1 w-1/3 md:w-1/3">
                     <div class="flex justify-between w-full text-[10px] text-[#444] uppercase tracking-wider font-mono">
                         <span id="progress-time">00:00</span>
                         <span id="progress-percent">0%</span>
@@ -148,27 +157,32 @@
             </div>
 
             <!-- THE STAGE -->
-            <div class="flex-1 flex flex-col items-center justify-center relative select-none cursor-pointer" id="reader-stage">
+            <div class="flex-1 flex flex-col items-center justify-center relative select-none cursor-pointer overflow-hidden" id="reader-stage">
                 <!-- Focus Guides -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                     <div class="w-[2px] h-8 bg-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60px]"></div>
                     <div class="w-[2px] h-8 bg-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-[28px]"></div>
                 </div>
 
-                <div class="orp-container text-6xl md:text-7xl lg:text-8xl w-full max-w-5xl px-4 guide-lines">
+                <!-- Word Display -->
+                <!-- Responsive text sizing to prevent overflow on small devices -->
+                <div class="orp-container text-4xl sm:text-6xl md:text-7xl lg:text-8xl w-full max-w-5xl px-4 guide-lines">
                     <span class="orp-left text-[#cccccc]" id="word-left">Wait</span>
                     <span class="orp-pivot" id="word-pivot">i</span>
                     <span class="orp-right text-[#cccccc]" id="word-right">ng...</span>
                 </div>
                 
+                <!-- Bookmark Notification Toast -->
                  <div id="bookmark-toast" class="absolute mt-32 bg-[#111] border border-[#333] text-white px-4 py-2 rounded-full text-xs opacity-0 transition-opacity duration-500">
                     Bookmark Saved
                 </div>
             </div>
 
             <!-- Controls Footer -->
-            <div class="h-24 border-t border-[#111] bg-[#050505] flex items-center justify-center gap-8 relative z-20">
-                <div class="flex items-center gap-3 w-48 justify-end">
+            <div class="h-auto py-6 md:py-0 md:h-24 shrink-0 border-t border-[#111] bg-[#050505] flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 relative z-20">
+                
+                <!-- Speed Control Group (Minus/Plus) -->
+                <div class="flex items-center gap-3 w-full justify-center md:w-48 md:justify-end order-2 md:order-1">
                     <button class="text-[#666] hover:text-white p-2" onclick="adjustSpeed(-50)"><i data-lucide="minus" class="w-4 h-4"></i></button>
                     <div class="flex flex-col items-center w-20">
                         <span class="text-2xl font-bold font-mono text-white leading-none" id="wpm-display">300</span>
@@ -177,7 +191,8 @@
                     <button class="text-[#666] hover:text-white p-2" onclick="adjustSpeed(50)"><i data-lucide="plus" class="w-4 h-4"></i></button>
                 </div>
 
-                <div class="flex items-center gap-6">
+                <!-- Playback Controls (Main) -->
+                <div class="flex items-center gap-6 order-1 md:order-2">
                     <button onclick="seek(-10)" class="text-[#666] hover:text-white p-3 rounded-full hover:bg-[#111] transition-all">
                         <i data-lucide="rewind" class="w-6 h-6"></i>
                     </button>
@@ -191,9 +206,10 @@
                     </button>
                 </div>
 
-                <div class="w-48 pl-8 flex items-center">
-                   <div class="flex flex-col gap-1 w-full max-w-[100px]">
-                       <label class="text-[10px] text-[#444] uppercase tracking-wider">Speed</label>
+                <!-- Speed Slider -->
+                <div class="w-full px-8 md:w-48 md:pl-8 flex items-center justify-center order-3 md:order-3">
+                   <div class="flex flex-col gap-1 w-full max-w-[200px] md:max-w-[100px]">
+                       <label class="text-[10px] text-[#444] uppercase tracking-wider text-center md:text-left">Speed</label>
                        <input type="range" min="100" max="1000" step="10" value="300" id="wpm-slider" oninput="updateSpeedFromSlider(this.value)">
                    </div>
                 </div>
@@ -202,7 +218,7 @@
 
         <!-- Library Overlay -->
         <div id="library-overlay" class="absolute inset-y-0 right-0 w-full md:w-96 bg-[#0a0a0a] border-l border-[#1f1f1f] transform translate-x-full transition-transform duration-300 z-50 flex flex-col shadow-2xl">
-            <div class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-black">
+            <div class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-black shrink-0">
                 <span class="font-bold text-white">Your Library</span>
                 <button onclick="toggleLibrary()" class="text-[#666] hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
@@ -213,7 +229,7 @@
         </div>
 
         <!-- Settings Modal -->
-        <div id="settings-modal" class="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center modal-enter transition-all duration-200">
+        <div id="settings-modal" class="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center modal-enter transition-all duration-200 p-4">
             <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg w-full max-w-md p-6 shadow-2xl relative">
                 <button onclick="toggleSettings()" class="absolute top-4 right-4 text-[#666] hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
                 <h2 class="text-xl font-light text-white mb-6">Settings</h2>
@@ -242,11 +258,11 @@
     <script>
         lucide.createIcons();
 
-        // Constants
+        // Icons as Raw SVG for instant toggling
         const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play w-6 h-6 fill-current"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
         const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause w-6 h-6 fill-current"><rect width="4" height="16" x="6" y="4"></rect><rect width="4" height="16" x="14" y="4"></rect></svg>`;
 
-        // State
+        // Application State
         const state = {
             words: [],
             currentIndex: 0,
@@ -289,7 +305,7 @@
                 state.wpm = parseInt(savedWpm);
                 els.settingWpm.value = savedWpm;
             }
-            updateWpmUI();
+            updateWpmUI(); // Sync slider and text
             updatePlayButtonUI(); 
             renderLibraryList();
         };
@@ -297,8 +313,13 @@
         // --- Library Logic ---
 
         function getLibrary() {
-            const data = localStorage.getItem('rvsp_library');
-            return data ? JSON.parse(data) : [];
+            try {
+                const data = localStorage.getItem('rvsp_library');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error("Library load error", e);
+                return [];
+            }
         }
 
         function saveLibrary(data) {
@@ -326,11 +347,11 @@
             
             // Visual Feedback
             const btn = document.querySelector("button[onclick='saveToLibrary()']");
-            const originalText = btn.textContent;
-            btn.textContent = "Saved!";
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Saved!";
             btn.classList.add("text-white", "border-white");
             setTimeout(() => {
-                btn.textContent = originalText;
+                btn.innerHTML = originalText;
                 btn.classList.remove("text-white", "border-white");
             }, 1500);
         }
@@ -350,13 +371,12 @@
             const item = library.find(i => i.id === id);
             if (!item) return;
 
-            // Load into input first? Or straight to reader?
-            // Let's go straight to reader for seamless experience
+            // Load logic
             state.words = item.content.split(/\s+/).filter(w => w.length > 0);
             state.currentIndex = item.progress || 0;
             state.currentLibraryId = item.id;
             
-            // Also populate inputs in case they go back
+            // Populate inputs so user can edit if they want
             els.textInput.value = item.content;
             els.titleInput.value = item.title;
             updateWordCount();
@@ -376,11 +396,13 @@
             }
 
             library.forEach(item => {
-                const percent = Math.floor((item.progress / (item.content.split(/\s+/).length || 1)) * 100);
+                const wordCount = item.content.split(/\s+/).length || 1;
+                const percent = Math.floor((item.progress / wordCount) * 100);
                 
                 const div = document.createElement('div');
                 div.className = 'bg-[#111] hover:bg-[#161616] p-4 rounded-lg cursor-pointer transition-colors group relative border border-transparent hover:border-[#333]';
                 div.onclick = () => loadLibraryItem(item.id);
+                // Safe dynamic width using inline style
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-white font-medium text-sm pr-6 truncate">${item.title}</h3>
@@ -393,7 +415,7 @@
                         <span>${percent}% Complete</span>
                     </div>
                     <div class="w-full h-0.5 bg-[#222] mt-3 rounded-full overflow-hidden">
-                        <div class="h-full bg-[#444] w-[${percent}%]"></div>
+                        <div class="h-full bg-[#444]" style="width: ${percent}%"></div>
                     </div>
                 `;
                 els.libraryList.appendChild(div);
@@ -486,6 +508,7 @@
         function tick() {
             if (state.currentIndex >= state.words.length) {
                 pause();
+                // Loop to start or stay at end? Let's stay at end to allow user to replay manually
                 state.currentIndex = state.words.length - 1;
                 updateUI();
                 return;
@@ -494,6 +517,7 @@
             renderWord(state.words[state.currentIndex]);
             updateProgress();
             
+            // Adaptive Timing: Pause longer on punctuation
             let delay = 60000 / state.wpm;
             const currentWord = state.words[state.currentIndex];
             if (/[.,;!?]$/.test(currentWord)) delay *= 1.5;
@@ -509,7 +533,9 @@
 
         function play() {
             if (state.words.length === 0) return;
+            // Auto restart if at end
             if (state.currentIndex >= state.words.length) state.currentIndex = 0;
+            
             state.isPlaying = true;
             updatePlayButtonUI();
             tick();
@@ -568,8 +594,7 @@
             if (state.words[state.currentIndex]) renderWord(state.words[state.currentIndex]);
             updateProgress();
             
-            // Show bookmark button active state if needed?
-            // Simple opacity change is handled by hover
+            // Highlight bookmark button if active story
             if (state.currentLibraryId) {
                 els.bookmarkBtn.style.opacity = '1';
                 els.bookmarkBtn.style.color = '#fff';
@@ -591,14 +616,11 @@
 
             state.words = rawText.split(/\s+/).filter(w => w.length > 0);
             
-            // If we are starting from input (not library load), reset current ID unless it matches current input
-            // To be safe, if the user modifies text, treat as new session unless explicit save
-            // But we can check if content matches library item? Too complex.
-            // Simplified: If clicked Start Reading from Input view, and we haven't just loaded a library item, it's a temp session.
-            // If we loaded a library item, state.currentLibraryId is set.
-            // If user types in box, we should probably clear state.currentLibraryId.
+            // Logic: If the text in the box matches the currently loaded library item, preserve the ID/Progress.
+            // If it DOES NOT match, treat it as a new "temporary" session and reset progress to 0.
+            const currentLibContent = getLibrary().find(i => i.id === state.currentLibraryId)?.content;
             
-            if (els.textInput.value !== getLibrary().find(i => i.id === state.currentLibraryId)?.content) {
+            if (els.textInput.value !== currentLibContent) {
                  state.currentLibraryId = null;
                  state.currentIndex = 0;
             }
@@ -610,7 +632,7 @@
         function exitReader() {
             pause();
             toggleView('input');
-            renderLibraryList(); // Refresh progress bars
+            renderLibraryList(); // Refresh progress bars visuals
         }
 
         function toggleView(viewName) {
@@ -650,8 +672,8 @@
 
         els.textInput.addEventListener('input', () => {
             updateWordCount();
-            // If user types, detach from library item to prevent overwriting library item with different text
-            state.currentLibraryId = null; 
+            // Note: We don't nullify currentLibraryId here immediately to allow minor edits, 
+            // but startReader check handles the logic of resetting progress if content changed.
         });
 
         document.addEventListener('keydown', (e) => {
