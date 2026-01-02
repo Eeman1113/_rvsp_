@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO: Title & Meta Tags -->
+    <title>_rvsp_ - The better way to read</title>
+    <meta name="description" content="Experience _rvsp_, the ultimate RSVP (Rapid Serial Visual Presentation) speed reading app. Read faster, improve focus, and process information efficiently without eye movement. The better way to read.">
+    <meta name="keywords" content="speed reading, RSVP reader, rapid serial visual presentation, read faster, _rvsp_, productivity tool, focus reading, dark mode reader, speed reader online, text to rsvp">
+    <meta name="author" content="_rvsp_">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#000000">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="_rvsp_ - The better way to read">
+    <meta property="og:description" content="Read faster and focus better with _rvsp_, the minimal RSVP speed reading tool designed for modern readers.">
+    <meta property="og:site_name" content="_rvsp_">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="_rvsp_ - The better way to read">
+    <meta property="twitter:description" content="Read faster and focus better with _rvsp_, the minimal RSVP speed reading tool designed for modern readers.">
+
+    <!-- Structured Data (JSON-LD) for Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "_rvsp_",
+      "alternateName": "RSVP Reader",
+      "headline": "The better way to read",
+      "description": "A high-performance Rapid Serial Visual Presentation (RSVP) application designed to help users read faster by displaying words one at a time at user-defined speeds.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": "Speed reading, RSVP technology, Dark mode interface, Library management, Bookmark support"
+    }
+    </script>
+
+    <!-- Thunderbolt Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22white%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polygon points=%2213 2 3 14 12 14 11 22 21 10 12 10 13 2%22/></svg>">
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #0a0a0a;
+            --border-color: #1f1f1f;
+            --accent-color: #ffffff;
+            --text-secondary: #888888;
+            --focus-point: #ef4444;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent body scroll, handle internally */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* RSVP Container Logic */
+        .orp-container {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            user-select: none;
+            position: relative;
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        .orp-left { text-align: right; width: 50%; padding-right: 2px; }
+        .orp-pivot { color: var(--focus-point); width: auto; text-align: center; transform: scale(1.05); }
+        .orp-right { text-align: left; width: 50%; padding-left: 2px; }
+
+        /* Focus Guides (Vertical Lines) */
+        .guide-lines::before, .guide-lines::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 2px;
+        }
+        .guide-lines::before { top: -20px; }
+        .guide-lines::after { bottom: -20px; }
+
+        /* Slider Styling */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 12px; width: 12px;
+            border-radius: 50%; background: #ffffff; cursor: pointer; margin-top: -5px; 
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 2px; cursor: pointer; background: #333; border-radius: 1px;
+        }
+
+        /* Modal Transitions */
+        .modal-enter { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .modal-active { opacity: 1; pointer-events: auto; transform: scale(1); }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col text-sm antialiased selection:bg-white selection:text-black">
+
+    <!-- Top Navigation -->
+    <nav class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-4 md:px-6 bg-black z-50 shrink-0">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="toggleView('input')">
+            <!-- Hidden H1 for SEO, visible text matches design -->
+            <h1 class="sr-only">_rvsp_ - RSVP Speed Reader</h1>
+            <span class="font-bold tracking-tight text-lg text-white">_rvsp_</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleLibrary()" class="text-[#888888] hover:text-white transition-colors text-xs uppercase tracking-wider font-medium">Library</button>
+            <div class="h-4 w-[1px] bg-[#1f1f1f]"></div>
+            <button onclick="toggleSettings()" class="text-[#888888] hover:text-white transition-colors"><i data-lucide="settings" class="w-4 h-4"></i></button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative flex flex-col overflow-hidden">
+
+        <!-- VIEW 1: Input / Dashboard -->
+        <div id="view-input" class="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-6 bg-black z-10 transition-opacity duration-300 overflow-y-auto">
+            <div class="w-full max-w-2xl flex flex-col gap-6 my-auto">
+                <div class="space-y-1">
+                    <h2 class="text-3xl font-light text-white">Add Content</h2>
+                    <p class="text-[#666] text-sm">Paste your text below to begin rapid reading.</p>
+                </div>
+                
+                <div class="relative group">
+                    <input id="title-input" class="w-full bg-transparent border-none text-white text-lg font-medium placeholder-[#444] focus:outline-none mb-2" placeholder="Untitled Story (Optional title)">
+                    <textarea id="text-input" 
+                        class="w-full h-48 md:h-64 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg p-5 text-[#cccccc] placeholder-[#444] resize-none focus:outline-none focus:border-[#444] transition-colors font-mono text-sm leading-relaxed"
+                        placeholder="Paste article, book chapter, or notes here..."></textarea>
+                    <div class="absolute bottom-4 right-4 text-[#444] text-xs pointer-events-none" id="word-count">0 words</div>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row justify-between items-center gap-4 sm:gap-0">
+                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                        <button onclick="loadDemo()" class="text-xs text-[#666] hover:text-[#999] underline">Load Demo</button>
+                        <button onclick="clearInput()" class="text-xs text-[#666] hover:text-red-400">Clear</button>
+                    </div>
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <button onclick="saveToLibrary()" class="flex-1 sm:flex-none justify-center text-[#888888] hover:text-white border border-[#333] hover:border-white px-4 py-2.5 rounded-md font-medium text-sm transition-all flex items-center">
+                            Save to Library
+                        </button>
+                        <button onclick="startReader()" 
+                            class="flex-1 sm:flex-none justify-center bg-white text-black hover:bg-gray-200 px-6 py-2.5 rounded-md font-medium text-sm transition-all flex items-center gap-2 group">
+                            <span>Start Reading</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Reader Interface -->
+        <div id="view-reader" class="absolute inset-0 bg-black z-0 opacity-0 pointer-events-none flex flex-col transition-opacity duration-300">
+            
+            <!-- Reader Header: Progress -->
+            <div class="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-[#111]">
+                <button onclick="exitReader()" class="text-[#666] hover:text-white transition-colors flex items-center gap-2 text-xs font-medium uppercase tracking-wide">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i> Back
+                </button>
+                <div class="flex flex-col items-center gap-1 w-1/3 md:w-1/3">
+                    <div class="flex justify-between w-full text-[10px] text-[#444] uppercase tracking-wider font-mono">
+                        <span id="progress-time">00:00</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="w-full h-1 bg-[#111] rounded-full overflow-hidden cursor-pointer group" id="progress-container">
+                        <div id="progress-bar" class="h-full bg-white w-0 transition-all duration-100 ease-linear"></div>
+                    </div>
+                </div>
+                <div class="w-20 flex justify-end">
+                    <button onclick="saveBookmark()" id="bookmark-btn" class="text-[#444] hover:text-white transition-colors" title="Bookmark current position">
+                         <i data-lucide="bookmark" class="w-5 h-5"></i>
+                    </button>
+                </div> 
+            </div>
+
+            <!-- THE STAGE -->
+            <div class="flex-1 flex flex-col items-center justify-center relative select-none cursor-pointer overflow-hidden" id="reader-stage">
+                <!-- Focus Guides -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                    <div class="w-[2px] h-8 bg-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-[60px]"></div>
+                    <div class="w-[2px] h-8 bg-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-[28px]"></div>
+                </div>
+
+                <!-- Word Display -->
+                <!-- Responsive text sizing to prevent overflow on small devices -->
+                <div class="orp-container text-4xl sm:text-6xl md:text-7xl lg:text-8xl w-full max-w-5xl px-4 guide-lines">
+                    <span class="orp-left text-[#cccccc]" id="word-left">Wait</span>
+                    <span class="orp-pivot" id="word-pivot">i</span>
+                    <span class="orp-right text-[#cccccc]" id="word-right">ng...</span>
+                </div>
+                
+                <!-- Bookmark Notification Toast -->
+                 <div id="bookmark-toast" class="absolute mt-32 bg-[#111] border border-[#333] text-white px-4 py-2 rounded-full text-xs opacity-0 transition-opacity duration-500">
+                    Bookmark Saved
+                </div>
+            </div>
+
+            <!-- Controls Footer -->
+            <div class="h-auto py-6 md:py-0 md:h-24 shrink-0 border-t border-[#111] bg-[#050505] flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 relative z-20">
+                
+                <!-- Speed Control Group (Minus/Plus) -->
+                <div class="flex items-center gap-3 w-full justify-center md:w-48 md:justify-end order-2 md:order-1">
+                    <button class="text-[#666] hover:text-white p-2" onclick="adjustSpeed(-50)"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                    <div class="flex flex-col items-center w-20">
+                        <span class="text-2xl font-bold font-mono text-white leading-none" id="wpm-display">300</span>
+                        <span class="text-[10px] text-[#666] uppercase tracking-wider mt-1">wpm</span>
+                    </div>
+                    <button class="text-[#666] hover:text-white p-2" onclick="adjustSpeed(50)"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                </div>
+
+                <!-- Playback Controls (Main) -->
+                <div class="flex items-center gap-6 order-1 md:order-2">
+                    <button onclick="seek(-10)" class="text-[#666] hover:text-white p-3 rounded-full hover:bg-[#111] transition-all">
+                        <i data-lucide="rewind" class="w-6 h-6"></i>
+                    </button>
+                    
+                    <button id="play-btn" onclick="togglePlay()" class="bg-white text-black p-4 rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.15)] flex items-center justify-center">
+                        <!-- Icons inserted by JS -->
+                    </button>
+
+                    <button onclick="seek(10)" class="text-[#666] hover:text-white p-3 rounded-full hover:bg-[#111] transition-all">
+                        <i data-lucide="fast-forward" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Speed Slider -->
+                <div class="w-full px-8 md:w-48 md:pl-8 flex items-center justify-center order-3 md:order-3">
+                   <div class="flex flex-col gap-1 w-full max-w-[200px] md:max-w-[100px]">
+                       <label class="text-[10px] text-[#444] uppercase tracking-wider text-center md:text-left">Speed</label>
+                       <input type="range" min="100" max="1000" step="10" value="300" id="wpm-slider" oninput="updateSpeedFromSlider(this.value)">
+                   </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Library Overlay -->
+        <div id="library-overlay" class="absolute inset-y-0 right-0 w-full md:w-96 bg-[#0a0a0a] border-l border-[#1f1f1f] transform translate-x-full transition-transform duration-300 z-50 flex flex-col shadow-2xl">
+            <div class="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-black shrink-0">
+                <span class="font-bold text-white">Your Library</span>
+                <button onclick="toggleLibrary()" class="text-[#666] hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-2" id="library-list">
+                <!-- Items injected here -->
+                <div class="text-center text-[#444] mt-10 text-sm">Library is empty</div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center modal-enter transition-all duration-200 p-4">
+            <div class="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg w-full max-w-md p-6 shadow-2xl relative">
+                <button onclick="toggleSettings()" class="absolute top-4 right-4 text-[#666] hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <h2 class="text-xl font-light text-white mb-6">Settings</h2>
+                
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-xs text-[#666] uppercase tracking-wider">Default Speed (WPM)</label>
+                        <input type="number" id="setting-wpm" class="w-full bg-[#111] border border-[#333] rounded p-2 text-white focus:border-white outline-none" value="300">
+                    </div>
+
+                    <div class="pt-4 border-t border-[#1f1f1f]">
+                        <button onclick="clearLibrary()" class="text-red-500 text-sm hover:text-red-400 flex items-center gap-2">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i> Clear All Library Data
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end">
+                    <button onclick="saveSettings()" class="bg-white text-black px-4 py-2 rounded text-sm font-medium hover:bg-gray-200">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Icons as Raw SVG for instant toggling
+        const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play w-6 h-6 fill-current"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+        const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pause w-6 h-6 fill-current"><rect width="4" height="16" x="6" y="4"></rect><rect width="4" height="16" x="14" y="4"></rect></svg>`;
+
+        // Application State
+        const state = {
+            words: [],
+            currentIndex: 0,
+            wpm: 300,
+            isPlaying: false,
+            intervalId: null,
+            currentLibraryId: null // If reading a saved item
+        };
+
+        // DOM Elements
+        const els = {
+            textInput: document.getElementById('text-input'),
+            titleInput: document.getElementById('title-input'),
+            wordCount: document.getElementById('word-count'),
+            viewInput: document.getElementById('view-input'),
+            viewReader: document.getElementById('view-reader'),
+            wpmDisplay: document.getElementById('wpm-display'),
+            wpmSlider: document.getElementById('wpm-slider'),
+            playBtn: document.getElementById('play-btn'),
+            wordLeft: document.getElementById('word-left'),
+            wordPivot: document.getElementById('word-pivot'),
+            wordRight: document.getElementById('word-right'),
+            progressBar: document.getElementById('progress-bar'),
+            progressPercent: document.getElementById('progress-percent'),
+            progressTime: document.getElementById('progress-time'),
+            readerStage: document.getElementById('reader-stage'),
+            progressContainer: document.getElementById('progress-container'),
+            libraryOverlay: document.getElementById('library-overlay'),
+            libraryList: document.getElementById('library-list'),
+            settingsModal: document.getElementById('settings-modal'),
+            settingWpm: document.getElementById('setting-wpm'),
+            bookmarkBtn: document.getElementById('bookmark-btn'),
+            bookmarkToast: document.getElementById('bookmark-toast')
+        };
+
+        // --- Initialization ---
+        window.onload = function() {
+            const savedWpm = localStorage.getItem('rvsp_default_wpm');
+            if (savedWpm) {
+                state.wpm = parseInt(savedWpm);
+                els.settingWpm.value = savedWpm;
+            }
+            updateWpmUI(); // Sync slider and text
+            updatePlayButtonUI(); 
+            renderLibraryList();
+        };
+
+        // --- Library Logic ---
+
+        function getLibrary() {
+            try {
+                const data = localStorage.getItem('rvsp_library');
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                console.error("Library load error", e);
+                return [];
+            }
+        }
+
+        function saveLibrary(data) {
+            localStorage.setItem('rvsp_library', JSON.stringify(data));
+        }
+
+        function saveToLibrary() {
+            const text = els.textInput.value.trim();
+            const title = els.titleInput.value.trim() || "Untitled Story";
+            
+            if (!text) return alert("Please enter some text to save.");
+
+            const library = getLibrary();
+            const newItem = {
+                id: Date.now(),
+                title: title,
+                content: text,
+                progress: 0,
+                createdAt: new Date().toLocaleDateString()
+            };
+
+            library.unshift(newItem); // Add to top
+            saveLibrary(library);
+            
+            // Set current session to this new ID so bookmarks work immediately
+            state.currentLibraryId = newItem.id;
+            
+            renderLibraryList();
+            
+            // Visual Feedback
+            const btn = document.querySelector("button[onclick='saveToLibrary()']");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Saved!";
+            btn.classList.add("text-white", "border-white");
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove("text-white", "border-white");
+            }, 1500);
+        }
+
+        function deleteItem(e, id) {
+            e.stopPropagation();
+            if(!confirm("Delete this story?")) return;
+            
+            let library = getLibrary();
+            library = library.filter(item => item.id !== id);
+            saveLibrary(library);
+            renderLibraryList();
+        }
+
+        function loadLibraryItem(id) {
+            const library = getLibrary();
+            const item = library.find(i => i.id === id);
+            if (!item) return;
+
+            // Load logic
+            state.words = item.content.split(/\s+/).filter(w => w.length > 0);
+            state.currentIndex = item.progress || 0;
+            state.currentLibraryId = item.id;
+            
+            // Populate inputs so user can edit if they want
+            els.textInput.value = item.content;
+            els.titleInput.value = item.title;
+            updateWordCount();
+
+            toggleLibrary(); // Close overlay
+            toggleView('reader');
+            updateUI();
+        }
+
+        function renderLibraryList() {
+            const library = getLibrary();
+            els.libraryList.innerHTML = '';
+
+            if (library.length === 0) {
+                els.libraryList.innerHTML = '<div class="text-center text-[#444] mt-10 text-sm">Library is empty</div>';
+                return;
+            }
+
+            library.forEach(item => {
+                const wordCount = item.content.split(/\s+/).length || 1;
+                const percent = Math.floor((item.progress / wordCount) * 100);
+                
+                const div = document.createElement('div');
+                div.className = 'bg-[#111] hover:bg-[#161616] p-4 rounded-lg cursor-pointer transition-colors group relative border border-transparent hover:border-[#333]';
+                div.onclick = () => loadLibraryItem(item.id);
+                // Safe dynamic width using inline style
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-white font-medium text-sm pr-6 truncate">${item.title}</h3>
+                        <button class="text-[#444] hover:text-red-500 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" onclick="deleteItem(event, ${item.id})">
+                            <i data-lucide="trash" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-[#666] uppercase tracking-wider">
+                        <span>${item.createdAt}</span>
+                        <span>${percent}% Complete</span>
+                    </div>
+                    <div class="w-full h-0.5 bg-[#222] mt-3 rounded-full overflow-hidden">
+                        <div class="h-full bg-[#444]" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                els.libraryList.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function toggleLibrary() {
+            const isOpen = els.libraryOverlay.classList.contains('translate-x-0');
+            if (isOpen) {
+                els.libraryOverlay.classList.remove('translate-x-0');
+                els.libraryOverlay.classList.add('translate-x-full');
+            } else {
+                renderLibraryList();
+                els.libraryOverlay.classList.remove('translate-x-full');
+                els.libraryOverlay.classList.add('translate-x-0');
+            }
+        }
+
+        // --- Bookmark / Progress Saving ---
+
+        function saveBookmark() {
+            if (!state.currentLibraryId) {
+                alert("Save this text to your Library first to add bookmarks.");
+                return;
+            }
+
+            const library = getLibrary();
+            const itemIndex = library.findIndex(i => i.id === state.currentLibraryId);
+            
+            if (itemIndex > -1) {
+                library[itemIndex].progress = state.currentIndex;
+                saveLibrary(library);
+                
+                // Show Toast
+                els.bookmarkToast.classList.remove('opacity-0');
+                setTimeout(() => els.bookmarkToast.classList.add('opacity-0'), 2000);
+            }
+        }
+
+        // --- Settings Logic ---
+
+        function toggleSettings() {
+            const modal = els.settingsModal;
+            if (modal.classList.contains('modal-active')) {
+                modal.classList.remove('modal-active');
+                modal.classList.add('modal-enter');
+            } else {
+                modal.classList.remove('modal-enter');
+                modal.classList.add('modal-active');
+            }
+        }
+
+        function saveSettings() {
+            const newWpm = parseInt(els.settingWpm.value);
+            if (newWpm >= 100 && newWpm <= 2000) {
+                state.wpm = newWpm;
+                localStorage.setItem('rvsp_default_wpm', newWpm);
+                updateWpmUI();
+            }
+            toggleSettings();
+        }
+
+        function clearLibrary() {
+            if (confirm("Are you sure? This will delete all your saved stories.")) {
+                localStorage.removeItem('rvsp_library');
+                renderLibraryList();
+                alert("Library cleared.");
+            }
+        }
+
+        // --- Reader Core Logic ---
+
+        function getPivotIndex(word) {
+            const length = word.length;
+            if (length === 1) return 0;
+            let pivot = Math.ceil((length - 1) / 4);
+            if (length > 13) pivot = 4;
+            return pivot;
+        }
+
+        function renderWord(word) {
+            if (!word) return;
+            const pivotIndex = getPivotIndex(word);
+            els.wordLeft.textContent = word.substring(0, pivotIndex);
+            els.wordPivot.textContent = word.substring(pivotIndex, pivotIndex + 1);
+            els.wordRight.textContent = word.substring(pivotIndex + 1);
+        }
+
+        function tick() {
+            if (state.currentIndex >= state.words.length) {
+                pause();
+                // Loop to start or stay at end? Let's stay at end to allow user to replay manually
+                state.currentIndex = state.words.length - 1;
+                updateUI();
+                return;
+            }
+
+            renderWord(state.words[state.currentIndex]);
+            updateProgress();
+            
+            // Adaptive Timing: Pause longer on punctuation
+            let delay = 60000 / state.wpm;
+            const currentWord = state.words[state.currentIndex];
+            if (/[.,;!?]$/.test(currentWord)) delay *= 1.5;
+            if (currentWord.length > 10) delay *= 1.2;
+
+            state.currentIndex++;
+            state.intervalId = setTimeout(tick, delay);
+        }
+
+        function togglePlay() {
+            state.isPlaying ? pause() : play();
+        }
+
+        function play() {
+            if (state.words.length === 0) return;
+            // Auto restart if at end
+            if (state.currentIndex >= state.words.length) state.currentIndex = 0;
+            
+            state.isPlaying = true;
+            updatePlayButtonUI();
+            tick();
+        }
+
+        function pause() {
+            state.isPlaying = false;
+            clearTimeout(state.intervalId);
+            updatePlayButtonUI();
+            // Auto-save progress if in library mode
+            if (state.currentLibraryId) saveBookmark();
+        }
+
+        function updatePlayButtonUI() {
+            els.playBtn.innerHTML = state.isPlaying ? PAUSE_ICON_SVG : PLAY_ICON_SVG;
+        }
+
+        function seek(amount) {
+            pause();
+            state.currentIndex += amount;
+            if (state.currentIndex < 0) state.currentIndex = 0;
+            if (state.currentIndex >= state.words.length) state.currentIndex = state.words.length - 1;
+            updateUI();
+        }
+
+        function adjustSpeed(amount) {
+            let newSpeed = state.wpm + amount;
+            if (newSpeed < 100) newSpeed = 100;
+            if (newSpeed > 1000) newSpeed = 1000;
+            state.wpm = newSpeed;
+            updateWpmUI();
+        }
+
+        function updateSpeedFromSlider(val) {
+            state.wpm = parseInt(val);
+            updateWpmUI();
+        }
+
+        function updateWpmUI() {
+            els.wpmDisplay.textContent = state.wpm;
+            els.wpmSlider.value = state.wpm;
+        }
+
+        function updateProgress() {
+            const percent = (state.currentIndex / state.words.length) * 100;
+            els.progressBar.style.width = `${percent}%`;
+            els.progressPercent.textContent = `${Math.floor(percent)}%`;
+            
+            const wordsLeft = state.words.length - state.currentIndex;
+            const minutesLeft = Math.floor(wordsLeft / state.wpm);
+            const secondsLeft = Math.floor((wordsLeft % state.wpm) / (state.wpm / 60));
+            els.progressTime.textContent = `-${minutesLeft}:${secondsLeft.toString().padStart(2, '0')}`;
+        }
+
+        function updateUI() {
+            if (state.words[state.currentIndex]) renderWord(state.words[state.currentIndex]);
+            updateProgress();
+            
+            // Highlight bookmark button if active story
+            if (state.currentLibraryId) {
+                els.bookmarkBtn.style.opacity = '1';
+                els.bookmarkBtn.style.color = '#fff';
+            } else {
+                els.bookmarkBtn.style.opacity = '0.3';
+                els.bookmarkBtn.style.color = '#444';
+            }
+        }
+
+        // --- View Management ---
+
+        function startReader() {
+            const rawText = els.textInput.value.trim();
+            if (!rawText) {
+                els.textInput.style.borderColor = '#ef4444';
+                setTimeout(() => els.textInput.style.borderColor = '#1f1f1f', 500);
+                return;
+            }
+
+            state.words = rawText.split(/\s+/).filter(w => w.length > 0);
+            
+            // Logic: If the text in the box matches the currently loaded library item, preserve the ID/Progress.
+            // If it DOES NOT match, treat it as a new "temporary" session and reset progress to 0.
+            const currentLibContent = getLibrary().find(i => i.id === state.currentLibraryId)?.content;
+            
+            if (els.textInput.value !== currentLibContent) {
+                 state.currentLibraryId = null;
+                 state.currentIndex = 0;
+            }
+
+            toggleView('reader');
+            updateUI();
+        }
+
+        function exitReader() {
+            pause();
+            toggleView('input');
+            renderLibraryList(); // Refresh progress bars visuals
+        }
+
+        function toggleView(viewName) {
+            if (viewName === 'input') {
+                els.viewReader.style.opacity = '0';
+                els.viewReader.style.pointerEvents = 'none';
+                els.viewInput.style.opacity = '1';
+                els.viewInput.style.pointerEvents = 'auto';
+            } else {
+                els.viewInput.style.opacity = '0';
+                els.viewInput.style.pointerEvents = 'none';
+                els.viewReader.style.opacity = '1';
+                els.viewReader.style.pointerEvents = 'auto';
+            }
+        }
+
+        function clearInput() {
+            els.textInput.value = '';
+            els.titleInput.value = '';
+            state.currentLibraryId = null;
+            state.currentIndex = 0;
+            updateWordCount();
+        }
+
+        function loadDemo() {
+            const demo = "Rapid Serial Visual Presentation, or RSVP for short, is a cool technique used to show people information really fast—one item at a time—in the same spot on the screen. Instead of reading a whole paragraph at your own pace, words flash by quickly, usually in the center of your vision. It’s kind of like speed reading: the content moves, not your eyes. This makes it easier to process info without having to scroll or move your gaze around. This is a demonstration of the _rvsp_ application technology. Enjoy reading at the speed of thought.";
+            els.textInput.value = demo;
+            els.titleInput.value = "Demo Text";
+            updateWordCount();
+        }
+
+        function updateWordCount() {
+            const count = els.textInput.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+            els.wordCount.textContent = `${count} words`;
+        }
+
+        // --- Listeners ---
+
+        els.textInput.addEventListener('input', () => {
+            updateWordCount();
+            // Note: We don't nullify currentLibraryId here immediately to allow minor edits, 
+            // but startReader check handles the logic of resetting progress if content changed.
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (els.viewReader.style.opacity === '0') return;
+
+            switch(e.code) {
+                case 'Space': e.preventDefault(); togglePlay(); break;
+                case 'ArrowUp': e.preventDefault(); adjustSpeed(10); break;
+                case 'ArrowDown': e.preventDefault(); adjustSpeed(-10); break;
+                case 'ArrowLeft': e.preventDefault(); seek(-10); break;
+                case 'ArrowRight': e.preventDefault(); seek(10); break;
+                case 'Escape': exitReader(); break;
+                case 'KeyB': saveBookmark(); break; 
+            }
+        });
+
+        els.readerStage.addEventListener('click', togglePlay);
+        
+        els.progressContainer.addEventListener('click', (e) => {
+            const rect = els.progressContainer.getBoundingClientRect();
+            const percentage = (e.clientX - rect.left) / rect.width;
+            state.currentIndex = Math.floor(state.words.length * percentage);
+            updateUI();
+        });
+
+        updateWordCount();
+    </script>
+</body>
+</html>
+
